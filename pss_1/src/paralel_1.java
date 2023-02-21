@@ -11,28 +11,30 @@ public class paralel_1 {
     private static double[][] ma;
     private static int MATRIX_SIZE = 1000;
 
+    private static long tA;
+    private static long tB;
+
     public static void main(String[] args) throws FileNotFoundException {
         Thread tread = new Thread(() -> {
             calcA();
         });
-        long endTime;
-        long startTime = System.currentTimeMillis();
         tread.start();
 		
         calcB();
         try {
             tread.join();
-            endTime = System.currentTimeMillis();
-            System.out.printf("2 multiplication: %d ms\n", endTime - startTime);
         } catch (Exception e) {
             System.out.println(e);
         }
+        
+        System.out.printf("Bougth multiplications: %d ms\n", tA + tB);
+
         mkFile("1_calcA.txt");
         mkFile("1_calcB.txt");
+        
         try (PrintWriter out = new PrintWriter("1_calcA.txt")) {
             out.println(matrixToString(ma));
         }
-
         try (PrintWriter out = new PrintWriter("1_calcB.txt")) {
             out.println(Arrays.toString(a));
         }        
@@ -55,11 +57,13 @@ public class paralel_1 {
 
         ma = sum(md, mz);
         long endTime = System.currentTimeMillis();
-        System.out.printf("First multiplication: %d ms\n", endTime - startTime);
+        tA = endTime - startTime;
+        System.out.printf("First multiplication: %d ms\n", tA);
 	}
 
     public static void calcB() { 		
         // A=D*MT-max(D)*B
+
         double[] d = genNewVector(MATRIX_SIZE);
         double[] b = genNewVector(MATRIX_SIZE);
         double[][] mt = genNewMatrix(MATRIX_SIZE);
@@ -71,7 +75,8 @@ public class paralel_1 {
         a = subtractVectors(tmp, multiplyVectorByScalar(maxD, b));
 
         long endTime = System.currentTimeMillis();
-        System.out.printf("Second multiplication: %d ms\n", endTime - startTime);
+        tB = endTime - startTime;
+        System.out.printf("Second multiplication: %d ms\n", tB);
 	}
 
     public static File mkFile(String fName) {
@@ -142,7 +147,6 @@ public class paralel_1 {
 		double []A=new double[len]; 	
 		Random R=new Random(); 	
 		
-		
 		int i; 	
 		for( i=0; i < len ; i++ ) {
 		    A[i]=R.nextInt(256); 	
@@ -153,22 +157,17 @@ public class paralel_1 {
 	}
 
     public static double sumByKahanAlgo(double...n) {
-        double sum = 0.0; 
-          
-            // Variable to store the error 
-            double x = 0.0; 
-      
-            // Loop to iterate over the array 
-            for (int i=0;i<n.length;i++) { 
-      
-                double y = n[i] - x; 
-                double z = sum + y;
-                x = (z - sum) - y;
-                sum = z; 
-            }
+        double sum = 0.0;  
+        double x = 0.0; 
+        for (int i=0;i<n.length;i++) { 
+    
+            double y = n[i] - x; 
+            double z = sum + y;
+            x = (z - sum) - y;
+            sum = z; 
+        }
         return sum; 
-      
-      }
+    }
 
 
     private static double[][] multiply(double[][] matA, double[][] matB) {
@@ -178,7 +177,7 @@ public class paralel_1 {
 			for(int j = 0; j < matB[0].length; j++) {
 				sum = 0;
 				for(int k = 0; k < matB.length; k++) {
-					sum += matA[i][k] * matB[k][j];
+					sum = sumByKahanAlgo(sum, matA[i][k] * matB[k][j]);
 				}
 				mat[i][j] = sum;
 			}

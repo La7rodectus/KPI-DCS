@@ -10,13 +10,16 @@ import java.io.IOException;
 public class paralel_2 {
     private static double[] a;
     private static double[][] ma;
-    private static int MATRIX_SIZE = 1;
+    private static int MATRIX_SIZE = 1000;
 
     volatile static double[][] md = genNewMatrix(MATRIX_SIZE);
     volatile static double[][] mt = genNewMatrix(MATRIX_SIZE);
     volatile static double[][] mz = genNewMatrix(MATRIX_SIZE);
     volatile static double[][] me = genNewMatrix(MATRIX_SIZE);
     volatile static double[][] mm = genNewMatrix(MATRIX_SIZE);
+    
+    volatile static double[][] meRes = genNewMatrix(MATRIX_SIZE);
+    volatile static double[][] mdRes = genNewMatrix(MATRIX_SIZE);
    
     volatile private static double[] d = genNewVector(MATRIX_SIZE);
     volatile private static double[] b = genNewVector(MATRIX_SIZE);
@@ -65,13 +68,13 @@ public class paralel_2 {
         // MА = MD*MT+MZ-ME*MM
         
         long startTime = System.currentTimeMillis();
-        mulMatrixParallel(executorA, me, mm, me);
-        mulMatrixParallel(executorA, md, mt, md);
+        mulMatrixParallel(executorA, me, mm, meRes);
+        mulMatrixParallel(executorA, md, mt, mdRes);
         
         w8Executopr(executorA);
 
-        mz = subtract(mz, me);
-        ma = sum(md, mz);
+        mz = subtract(mz, meRes);
+        ma = sum(mdRes, mz);
 
         
         long endTime = System.currentTimeMillis();
